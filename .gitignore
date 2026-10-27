@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+.env*
+!.env.example
+# Board data on this computer, and seed files with real task detail. Never commit these.
+.local-data/
+seed/
+.vercel
+.DS_Store
