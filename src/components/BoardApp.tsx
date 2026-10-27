@@ -18,7 +18,6 @@ const COLS: { id: Status; sub: string; tint: string; grouped: boolean; empty: [s
 ];
 const SHORT: Record<Status, string> = { todo: "To do", doing: "Doing", check: "To check", done: "Done" };
 const LANE_DOT: Record<Lane, string> = { design: "#5BC6E9", build: "#F09336" };
-const LIMIT = 4;
 const POLL_MS = 2000;
 
 interface Toast {
@@ -46,7 +45,6 @@ export function BoardApp() {
   const [phone, setPhone] = useState(false);
   const [phoneCol, setPhoneCol] = useState<Status>("doing");
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-  const [more, setMore] = useState<Record<string, boolean>>({});
   const [dragId, setDragId] = useState<string | null>(null);
   const [over, setOver] = useState<Status | null>(null);
   const seqRef = useRef(0);
@@ -256,7 +254,6 @@ export function BoardApp() {
 
   function renderGroup(key: string, list: Task[], head: { name: string; owners: string[] } | null, groupPerson?: string | null) {
     const open = !collapsed[key];
-    const shown = more[key] || list.length <= LIMIT + 1 ? list : list.slice(0, LIMIT);
     return (
       <div key={key} className="lb-group">
         {head && (
@@ -269,12 +266,7 @@ export function BoardApp() {
         )}
         {open && (
           <div className="lb-cards">
-            {shown.map((t) => renderCard(t, groupPerson))}
-            {shown.length < list.length && (
-              <button className="lb-more" onClick={() => setMore({ ...more, [key]: true })}>
-                Show {list.length - shown.length} more
-              </button>
-            )}
+            {list.map((t) => renderCard(t, groupPerson))}
           </div>
         )}
       </div>
@@ -383,7 +375,7 @@ export function BoardApp() {
 
   return (
     <div className="lb-root">
-      <header className="lb-top">
+      <header className={`lb-top${viewer ? "" : " asking"}`}>
         <a href="/" className="lb-brand" onClick={(e) => e.preventDefault()}>
           <svg width="36" height="31" viewBox="0 0 52 45" fill="none" aria-hidden="true">
             <path d="M37.6473 0C24.2175 0 23.4552.762 23.4552 14.196v5.359c0 13.433.762 14.196 14.192 14.196h1.638L31.499 44.743c16.7 0 20.338-3.639 20.338-20.344V14.196C51.839.762 51.077 0 37.647 0Z" fill="#213350" />
@@ -405,17 +397,18 @@ export function BoardApp() {
         </label>
         <span className="lb-spacer" />
         <div className="lb-menu-wrap" data-menu>
-          <button className="lb-pill-btn" onClick={() => setMenu(menu === "name" ? null : "name")}>
+          <button className={`lb-pill-btn${viewer ? "" : " ask"}`} onClick={() => setMenu(menu === "name" ? null : "name")}>
             <Avatar name={viewer} people={people} size={30} />
-            <span className="lb-desktop-only">
-              {viewer ? (
-                <>
-                  Using as <strong style={{ fontWeight: 750 }}>{viewer}</strong>
-                </>
-              ) : (
-                "Who are you?"
-              )}
-            </span>
+            {viewer ? (
+              <span className="lb-desktop-only">
+                Using as <strong style={{ fontWeight: 750 }}>{viewer}</strong>
+              </span>
+            ) : (
+              <>
+                <span className="lb-desktop-only">Pick who you are first</span>
+                <span className="lb-phone-only">Who are you?</span>
+              </>
+            )}
             <ChevronDown size={15} />
           </button>
           {menu === "name" && (
